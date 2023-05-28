@@ -112,8 +112,9 @@ class YOLOv8Face:
         landmarks = landmarks[mask]
         
         indices = cv2.dnn.NMSBoxes(bboxes_wh.tolist(), confidences.tolist(), self.conf_threshold,
-                                   self.iou_threshold).flatten()
+                                   self.iou_threshold)
         if len(indices) > 0:
+            indices = indices.flatten()
             mlvl_bboxes = bboxes_wh[indices]
             confidences = confidences[indices]
             classIds = classIds[indices]
@@ -134,14 +135,3 @@ class YOLOv8Face:
             x2 = np.clip(x2, 0, max_shape[1])
             y2 = np.clip(y2, 0, max_shape[0])
         return np.stack([x1, y1, x2, y2], axis=-1)
-    
-    def draw_detections(self, image, boxes, scores, kpts):
-        for box, score, kp in zip(boxes, scores, kpts):
-            x, y, w, h = box.astype(int)
-            # Draw rectangle
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), thickness=3)
-            cv2.putText(image, "face:"+str(round(score,2)), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), thickness=2)
-            for i in range(5):
-                cv2.circle(image, (int(kp[i * 3]), int(kp[i * 3 + 1])), 4, (0, 255, 0), thickness=-1)
-                # cv2.putText(image, str(i), (int(kp[i * 3]), int(kp[i * 3 + 1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), thickness=1)
-        return image
