@@ -6,7 +6,7 @@ from json.decoder import JSONDecodeError
 app = FastAPI()
 
 async def send_image_to_detection_service(image_data, endpoint):
-    url = f"http://localhost:8001/{endpoint}"
+    url = f"http://face_detection_service:8001/{endpoint}"
     files = {"file": ("image.jpg", image_data, "image/jpeg")}
     try:
         # Set a custom timeout (for example, 20 seconds)

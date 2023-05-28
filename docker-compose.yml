@@ -9,9 +9,9 @@ services:
     command: uvicorn face_detection_service:app --host 0.0.0.0 --port 8001
 
   gateway_service:
-    build: ./faceblur/gateway_service
+    build: ./faceblur/gateaway_service
     volumes:
-      - ./faceblur/gateway_service:/app
+      - ./faceblur/gateaway_service:/app
     ports:
       - 8000:8000
     command: uvicorn gateway_service:app --host 0.0.0.0 --port 8000

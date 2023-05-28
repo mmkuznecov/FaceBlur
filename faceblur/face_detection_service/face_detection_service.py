@@ -11,9 +11,10 @@ app = FastAPI()
 
 model = YOLOv8Face('weights/yolov8n-face.onnx')
 
+
 def detect_faces(model, image: np.ndarray) -> Dict[str, Dict[str, List[int]]]:
     # Detect Objects
-    boxes, scores, classids, landmarks = model.detect(image)
+    boxes = model.detect(image)
 
     # Prepare output format
     output = {}
@@ -27,10 +28,12 @@ def detect_faces(model, image: np.ndarray) -> Dict[str, Dict[str, List[int]]]:
 @app.post("/detect_faces")
 async def detect_faces_endpoint(file: UploadFile = File(...)):
     image_data = await file.read()
+    
     nparr = np.fromstring(image_data, np.uint8)
     
     # Decode the image from the bytes
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    
     faces = detect_faces(model, image)
 
     # Convert numpy integers to native Python integers
