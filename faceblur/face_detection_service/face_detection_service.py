@@ -1,7 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 import cv2
 import numpy as np
-from PIL import Image
 from yolov8 import YOLOv8Face
 import io
 from typing import Dict, List
@@ -28,8 +27,10 @@ def detect_faces(model, image: np.ndarray) -> Dict[str, Dict[str, List[int]]]:
 @app.post("/detect_faces")
 async def detect_faces_endpoint(file: UploadFile = File(...)):
     image_data = await file.read()
-    image = Image.open(io.BytesIO(image_data))
-    image = np.array(image)
+    nparr = np.fromstring(image_data, np.uint8)
+    
+    # Decode the image from the bytes
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     faces = detect_faces(model, image)
 
     # Convert numpy integers to native Python integers
@@ -49,8 +50,8 @@ def blur_faces(image: np.ndarray, faces: Dict[str, Dict[str, List[int]]]):
 @app.post("/blur_faces")
 async def blur_faces_endpoint(file: UploadFile = File(...)):
     image_data = await file.read()
-    image = Image.open(io.BytesIO(image_data))
-    image = np.array(image)
+    nparr = np.fromstring(image_data, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     timeout = httpx.Timeout(20.0, read=30.0)
     async with httpx.AsyncClient(timeout=timeout) as client:

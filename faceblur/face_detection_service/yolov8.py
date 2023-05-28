@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import math
 
 class YOLOv8Face:
     def __init__(self, path, conf_thres=0.2, iou_thres=0.5):
@@ -16,7 +15,7 @@ class YOLOv8Face:
 
         self.project = np.arange(self.reg_max)
         self.strides = (8, 16, 32)
-        self.feats_hw = [(math.ceil(self.input_height / self.strides[i]), math.ceil(self.input_width / self.strides[i])) for i in range(len(self.strides))]
+        self.feats_hw = [(np.ceil(self.input_height / self.strides[i]), np.ceil(self.input_width / self.strides[i])) for i in range(len(self.strides))]
         self.anchors = self.make_anchors(self.feats_hw)
 
     def make_anchors(self, feats_hw, grid_cell_offset=0.5):
@@ -65,64 +64,50 @@ class YOLOv8Face:
         blob = cv2.dnn.blobFromImage(input_img)
         self.net.setInput(blob)
         outputs = self.net.forward(self.net.getUnconnectedOutLayersNames())
-        det_bboxes, det_conf, det_classid, landmarks = self.post_process(outputs, scale_h, scale_w, padh, padw)
-        return det_bboxes, det_conf, det_classid, landmarks
+        det_bboxes = self.post_process(outputs, scale_h, scale_w, padh, padw)
+        return det_bboxes
 
     def post_process(self, preds, scale_h, scale_w, padh, padw):
-        bboxes, scores, landmarks = [], [], []
+        bboxes, scores = [], []
         for i, pred in enumerate(preds):
             stride = int(self.input_height/pred.shape[2])
             pred = pred.transpose((0, 2, 3, 1))
             
             box = pred[..., :self.reg_max * 4]
             cls = 1 / (1 + np.exp(-pred[..., self.reg_max * 4:-15])).reshape((-1,1))
-            kpts = pred[..., -15:].reshape((-1,15)) ### x1,y1,score1, ..., x5,y5,score5
 
             tmp = box.reshape(-1, 4, self.reg_max)
             bbox_pred = self.softmax(tmp, axis=-1)
             bbox_pred = np.dot(bbox_pred, self.project).reshape((-1,4))
 
             bbox = self.distance2bbox(self.anchors[stride], bbox_pred, max_shape=(self.input_height, self.input_width)) * stride
-            kpts[:, 0::3] = (kpts[:, 0::3] * 2.0 + (self.anchors[stride][:, 0].reshape((-1,1)) - 0.5)) * stride
-            kpts[:, 1::3] = (kpts[:, 1::3] * 2.0 + (self.anchors[stride][:, 1].reshape((-1,1)) - 0.5)) * stride
-            kpts[:, 2::3] = 1 / (1+np.exp(-kpts[:, 2::3]))
 
             bbox -= np.array([[padw, padh, padw, padh]])
             bbox *= np.array([[scale_w, scale_h, scale_w, scale_h]])
-            kpts -= np.tile(np.array([padw, padh, 0]), 5).reshape((1,15))
-            kpts *= np.tile(np.array([scale_w, scale_h, 1]), 5).reshape((1,15))
 
             bboxes.append(bbox)
             scores.append(cls)
-            landmarks.append(kpts)
 
         bboxes = np.concatenate(bboxes, axis=0)
         scores = np.concatenate(scores, axis=0)
-        landmarks = np.concatenate(landmarks, axis=0)
     
         bboxes_wh = bboxes.copy()
         bboxes_wh[:, 2:4] = bboxes[:, 2:4] - bboxes[:, 0:2]  # x y w h
-        classIds = np.argmax(scores, axis=1)
         confidences = np.max(scores, axis=1)  # max_class_confidence
         
         mask = confidences>self.conf_threshold
         bboxes_wh = bboxes_wh[mask]
         confidences = confidences[mask]
-        classIds = classIds[mask]
-        landmarks = landmarks[mask]
         
         indices = cv2.dnn.NMSBoxes(bboxes_wh.tolist(), confidences.tolist(), self.conf_threshold,
                                    self.iou_threshold)
         if len(indices) > 0:
             indices = indices.flatten()
             mlvl_bboxes = bboxes_wh[indices]
-            confidences = confidences[indices]
-            classIds = classIds[indices]
-            landmarks = landmarks[indices]
-            return mlvl_bboxes, confidences, classIds, landmarks
+            return mlvl_bboxes
         else:
             print('nothing detect')
-            return np.array([]), np.array([]), np.array([]), np.array([])
+            return np.array([])
 
     def distance2bbox(self, points, distance, max_shape=None):
         x1 = points[:, 0] - distance[:, 0]
