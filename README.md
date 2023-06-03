@@ -54,7 +54,7 @@ This command retrieves the result of a task. Replace some-task-id with the actua
 ```json
 {
   "status": "SUCCESS",
-  "result": {"face_1": {"facial_area": [x1, y1, x2, y2]}, "face_2": {"facial_area": [x1, y1, x2, y2]}}
+  "result": {"face_1": {"facial_area": [1044, 232, 1465, 795]}, "face_2": {"facial_area": [220, 156, 623, 700]}}
 }
 ```
 
