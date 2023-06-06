@@ -1,7 +1,6 @@
 from celery import Celery
 import io
-import base64
-from cv.utils import read_image, blur_faces, bbox_to_json, encode_image
+from cv.utils import detection_processing, blurring_processing
 from cv.yolov8 import YOLOv8Face
 import os
 
@@ -15,15 +14,10 @@ model = YOLOv8Face(MODEL_PATH)
 
 @celery_app.task(name='detect_faces_task')
 def detect_faces_task(image_data):
-    image_data = base64.b64decode(image_data)
-    image = read_image(image_data)
-    bboxes = model.detect(image)
-    return bbox_to_json(bboxes)
+    json_bboxes = detection_processing(image_data, model)
+    return json_bboxes
 
 @celery_app.task(name='blur_faces_task')
 def blur_faces_task(image_data):
-    image_data = base64.b64decode(image_data)
-    image = read_image(image_data)
-    bboxes = model.detect(image)
-    image = blur_faces(image, bboxes)
-    return encode_image(image)
+    encoded_image = blurring_processing(image_data, model)
+    return encoded_image

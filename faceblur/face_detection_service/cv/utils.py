@@ -29,3 +29,24 @@ def bbox_to_json(bboxes):
 def encode_image(image):
     _, encoded_image = cv2.imencode('.jpg', image)
     return base64.b64encode(encoded_image.tobytes()).decode('utf-8')
+
+
+def process_image(image_data):
+
+    image_data = base64.b64decode(image_data)
+    image = read_image(image_data)
+
+    return image
+
+def detection_processing(image_data, model):
+    image = process_image(image_data)
+    bboxes = model.detect(image)
+    json_bboxes = bbox_to_json(bboxes)
+    return json_bboxes
+
+def blurring_processing(image_data, model):
+    image = process_image(image_data)
+    bboxes = model.detect(image)
+    image = blur_faces(image, bboxes)
+    encoded_image = encode_image(image)
+    return encoded_image
