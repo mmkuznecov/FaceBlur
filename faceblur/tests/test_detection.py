@@ -26,7 +26,7 @@ def get_task_result(task_id):
         return None
 
 def main():
-    image_filename = "test.jpg"
+    image_filename = "test_imgs/test.jpg"
     task_id = send_image_for_detection(image_filename)
 
     if task_id:
@@ -35,7 +35,7 @@ def main():
 
         # Poll for result until task is done
         while result['status'] != 'SUCCESS':
-            print("Task not ready yet. Waiting for 1 second...")
+            print("Task not ready yet. Waiting for 0.1 second...")
             time.sleep(0.1)
             result = get_task_result(task_id)
 

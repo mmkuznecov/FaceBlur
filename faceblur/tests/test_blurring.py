@@ -27,7 +27,7 @@ def get_task_result(task_id):
         return None
 
 def main():
-    image_filename = "test.jpg"
+    image_filename = "test_imgs/test.jpg"
     task_id = send_image_for_blurring(image_filename)
 
     if task_id:
