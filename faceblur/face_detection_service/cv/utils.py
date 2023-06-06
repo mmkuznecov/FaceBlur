@@ -8,6 +8,7 @@ def read_image(image_data):
     image = cv2.imdecode(image, cv2.IMREAD_COLOR)
     return image
 
+
 def blur_faces(image, bboxes):
 
     for bbox in bboxes:
@@ -18,6 +19,7 @@ def blur_faces(image, bboxes):
         image[y1:y2, x1:x2] = blurred_face
     return image
 
+
 def bbox_to_json(bboxes):
     output = {}
     for i, box in enumerate(bboxes):
@@ -25,6 +27,7 @@ def bbox_to_json(bboxes):
         x2, y2 = x1 + w, y1 + h
         output[f"face_{i+1}"] = {'facial_area': [x1, y1, x2, y2]}
     return output
+
 
 def encode_image(image):
     _, encoded_image = cv2.imencode('.jpg', image)
@@ -38,11 +41,13 @@ def process_image(image_data):
 
     return image
 
+
 def detection_processing(image_data, model):
     image = process_image(image_data)
     bboxes = model.detect(image)
     json_bboxes = bbox_to_json(bboxes)
     return json_bboxes
+
 
 def blurring_processing(image_data, model):
     image = process_image(image_data)

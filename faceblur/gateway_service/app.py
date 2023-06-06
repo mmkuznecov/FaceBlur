@@ -6,7 +6,10 @@ import base64
 app = FastAPI()
 
 # Create a Celery instance
-celery_app = Celery('gateway_service', broker='pyamqp://guest@rabbitmq//', backend='redis://redis')
+celery_app = Celery('gateway_service',
+                    broker='pyamqp://guest@rabbitmq//',
+                    backend='redis://redis')
+
 
 @app.post("/detect_faces")
 async def detect_faces(file: UploadFile = File(...)):
@@ -15,12 +18,14 @@ async def detect_faces(file: UploadFile = File(...)):
     task = celery_app.send_task("detect_faces_task", args=[base64_image])
     return {"task_id": str(task.id)}
 
+
 @app.post("/blur_faces")
 async def blur_faces(file: UploadFile = File(...)):
     image_data = await file.read()
     base64_image = base64.b64encode(image_data).decode('utf-8')
     task = celery_app.send_task('blur_faces_task', args=[base64_image])
     return {"task_id": str(task.id)}
+
 
 @app.get("/task_result/{task_id}")
 def get_task_result(task_id: str):

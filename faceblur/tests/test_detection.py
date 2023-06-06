@@ -1,6 +1,7 @@
 import requests
 import time
 
+
 def send_image_for_detection(image_filename):
     url = "http://localhost:8000/detect_faces"
     mime_type = 'image/jpeg'
@@ -9,12 +10,13 @@ def send_image_for_detection(image_filename):
             'file': (image_filename, image_file, mime_type)
         }
         response = requests.post(url, files=files)
-    
+
     if response.status_code == 200:
         return response.json()['task_id']
     else:
         print("Image submission failed.")
         return None
+
 
 def get_task_result(task_id):
     url = f"http://localhost:8000/task_result/{task_id}"
@@ -24,6 +26,7 @@ def get_task_result(task_id):
     else:
         print("Task result retrieval failed.")
         return None
+
 
 def main():
     image_filename = "test_imgs/test.jpg"
@@ -46,6 +49,7 @@ def main():
             print(f"Task failed with status {result['status']}")
     else:
         print("Failed to submit image for detection.")
+
 
 if __name__ == "__main__":
     main()
