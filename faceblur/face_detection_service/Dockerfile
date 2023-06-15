@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["uvicorn", "face_detection_service:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["celery", "-A", "worker", "worker", "--loglevel=info", "-c", "4"]

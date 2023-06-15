@@ -1,7 +1,4 @@
-fastapi
-uvicorn
-aiohttp
-python-multipart
-httpx
+PyYAML
+celery[redis]
 numpy
 opencv-python-headless

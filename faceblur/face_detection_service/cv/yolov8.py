@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 class YOLOv8Face:
     def __init__(self, path, conf_thres=0.2, iou_thres=0.5):
         self.conf_threshold = conf_thres
@@ -22,7 +23,7 @@ class YOLOv8Face:
         """Generate anchors from features."""
         anchor_points = {}
         for i, stride in enumerate(self.strides):
-            h,w = feats_hw[i]
+            h, w = feats_hw[i]
             x = np.arange(0, w) + grid_cell_offset  # shift x
             y = np.arange(0, h) + grid_cell_offset  # shift y
             sx, sy = np.meshgrid(x, y)
@@ -35,7 +36,7 @@ class YOLOv8Face:
         x_sum = np.sum(x_exp, axis=axis, keepdims=True)
         s = x_exp / x_sum
         return s
-    
+
     def resize_image(self, srcimg, keep_ratio=True):
         top, left, newh, neww = 0, 0, self.input_width, self.input_height
         if keep_ratio and srcimg.shape[0] != srcimg.shape[1]:
@@ -71,8 +72,7 @@ class YOLOv8Face:
         bboxes, scores = [], []
         for i, pred in enumerate(preds):
             stride = int(self.input_height/pred.shape[2])
-            pred = pred.transpose((0, 2, 3, 1))
-            
+            pred = pred.transpose((0, 2, 3, 1))       
             box = pred[..., :self.reg_max * 4]
             cls = 1 / (1 + np.exp(-pred[..., self.reg_max * 4:-15])).reshape((-1,1))
 
@@ -90,15 +90,12 @@ class YOLOv8Face:
 
         bboxes = np.concatenate(bboxes, axis=0)
         scores = np.concatenate(scores, axis=0)
-    
         bboxes_wh = bboxes.copy()
         bboxes_wh[:, 2:4] = bboxes[:, 2:4] - bboxes[:, 0:2]  # x y w h
         confidences = np.max(scores, axis=1)  # max_class_confidence
-        
-        mask = confidences>self.conf_threshold
+        mask = confidences > self.conf_threshold
         bboxes_wh = bboxes_wh[mask]
         confidences = confidences[mask]
-        
         indices = cv2.dnn.NMSBoxes(bboxes_wh.tolist(), confidences.tolist(), self.conf_threshold,
                                    self.iou_threshold)
         if len(indices) > 0:

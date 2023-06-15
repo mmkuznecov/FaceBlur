@@ -1,19 +1,40 @@
 version: '3.8'
 services:
+  gateway_service:
+    build: ./faceblur/gateway_service
+    volumes:
+      - ./faceblur/gateway_service:/app
+    ports:
+      - ${GATEWAY_SERVICE_PORT}:8000
+    depends_on:
+      - rabbitmq
+      - redis
+
   face_detection_service:
     build: ./faceblur/face_detection_service
     volumes:
       - ./faceblur/face_detection_service:/app
-    ports:
-      - 8001:8001
-    command: uvicorn face_detection_service:app --host 0.0.0.0 --port 8001
-
-  gateway_service:
-    build: ./faceblur/gateaway_service
-    volumes:
-      - ./faceblur/gateaway_service:/app
-    ports:
-      - 8000:8000
-    command: uvicorn gateway_service:app --host 0.0.0.0 --port 8000
     depends_on:
-      - face_detection_service
+      - rabbitmq
+      - redis
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - ${RABBITMQ_PORT}:5672
+      - ${RABBITMQ_MANAGEMENT_PORT}:15672
+
+  redis:
+    image: redis
+    ports:
+      - ${REDIS_PORT}:6379
+
+  locust:
+    build: ./faceblur/stress_tests
+    ports:
+      - ${LOCUST_PORT}:8089
+    volumes:
+      - ./faceblur/stress_tests:/stress_tests
+      - ./faceblur/tests/test_imgs:/test_imgs
+    depends_on:
+      - gateway_service
