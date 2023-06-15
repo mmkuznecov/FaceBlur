@@ -1,13 +1,17 @@
 from celery import Celery
 from cv.utils import detection_processing, blurring_processing
 from cv.yolov8 import YOLOv8Face
+from utils import read_config
+
 
 # Initiate Celery
 celery_app = Celery('face_detection',
                     broker='pyamqp://guest@rabbitmq//',
                     backend='redis://redis')
 
-MODEL_PATH = "cv/weights/yolov8n-face.onnx"
+CONFIG = read_config('detection_config.yaml')
+
+MODEL_PATH = CONFIG['model_path']
 
 # Initialize the model
 model = YOLOv8Face(MODEL_PATH)

@@ -5,7 +5,7 @@ services:
     volumes:
       - ./faceblur/gateway_service:/app
     ports:
-      - 8000:8000
+      - ${GATEWAY_SERVICE_PORT}:8000
     depends_on:
       - rabbitmq
       - redis
@@ -21,10 +21,20 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - 5672:5672
-      - 15672:15672
+      - ${RABBITMQ_PORT}:5672
+      - ${RABBITMQ_MANAGEMENT_PORT}:15672
 
   redis:
     image: redis
     ports:
-      - 6379:6379
+      - ${REDIS_PORT}:6379
+
+  locust:
+    build: ./faceblur/stress_tests
+    ports:
+      - ${LOCUST_PORT}:8089
+    volumes:
+      - ./faceblur/stress_tests:/stress_tests
+      - ./faceblur/tests/test_imgs:/test_imgs
+    depends_on:
+      - gateway_service

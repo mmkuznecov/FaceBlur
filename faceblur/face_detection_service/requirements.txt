@@ -1,3 +1,4 @@
+PyYAML
 celery[redis]
 numpy
 opencv-python-headless
