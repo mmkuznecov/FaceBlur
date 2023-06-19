@@ -1,7 +1,7 @@
 from celery import Celery
-from cv.utils import detection_processing, blurring_processing
+from cv.cv_utils import detection_processing, blurring_processing
 from cv.yolov8 import YOLOv8Face
-from utils import read_config
+from detection_utils import read_config
 
 # Initiate Celery
 celery_app = Celery('face_detection',
