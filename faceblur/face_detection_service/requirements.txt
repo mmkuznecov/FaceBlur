@@ -1,5 +1,4 @@
 PyYAML
 celery[redis]
-logging
 numpy
 opencv-python-headless
